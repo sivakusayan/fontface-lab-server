@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sort"
 	"time"
 )
 
@@ -32,6 +33,14 @@ func GetCachedFontFamilyList() FontFamilyList {
 	return data.(FontFamilyList)
 }
 
+// Implementation of sort.Interface so we can sort by popularity.
+// https://pkg.go.dev/sort#Interface
+type ByPopularity []Font
+
+func (a ByPopularity) Len() int           { return len(a) }
+func (a ByPopularity) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByPopularity) Less(i, j int) bool { return a[i].Popularity < a[j].Popularity }
+
 func getFontFamilyList() FontFamilyList {
 	response, err := http.Get("https://fonts.google.com/metadata/fonts")
 	if err != nil {
@@ -55,6 +64,8 @@ func getFontFamilyList() FontFamilyList {
 			remove(subsets, menuSubsetIndex)
 		}
 	}
+
+	sort.Sort(ByPopularity(data.FamilyMetadataList))
 
 	return data
 }

@@ -12,17 +12,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type Font struct {
-	Family     string
-	Category   string
-	Subsets    []string
-	Popularity int
-}
-
-type FontFamilyList struct {
-	FamilyMetadataList []Font
-}
-
 func main() {
 	godotenv.Load()
 	http.HandleFunc("/api/font-family-list", onFontFamilyListRequest)
