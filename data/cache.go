@@ -1,4 +1,4 @@
-package main
+package data
 
 import (
 	"sync"
@@ -6,7 +6,7 @@ import (
 )
 
 type Item struct {
-	Value      string
+	Value      interface{}
 	Expiration int64
 }
 
@@ -19,7 +19,7 @@ func (item Item) isExpired() bool {
 	return time.Now().UnixNano() > item.Expiration
 }
 
-func (c *Cache) Set(k string, x string, d time.Duration) {
+func (c *Cache) Set(k string, x interface{}, d time.Duration) {
 	c.mu.Lock()
 	c.items[k] = Item{
 		Value:      x,
@@ -28,7 +28,7 @@ func (c *Cache) Set(k string, x string, d time.Duration) {
 	c.mu.Unlock()
 }
 
-func (c *Cache) Get(k string) (string, bool) {
+func (c *Cache) Get(k string) (interface{}, bool) {
 	c.mu.RLock()
 
 	item, found := c.items[k]
