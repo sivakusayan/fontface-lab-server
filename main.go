@@ -39,6 +39,7 @@ func getCachedFontFamilyList(w http.ResponseWriter, r *http.Request) {
 
 	// Cache for 6 hours
 	w.Header().Set("Cache-Control", "public, max-age=21600")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	io.WriteString(w, data)
 }
 
