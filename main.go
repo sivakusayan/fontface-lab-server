@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 type Font struct {
@@ -63,9 +65,14 @@ func getFontFamilyList() FontFamilyList {
 }
 
 func main() {
-	http.HandleFunc("/font-family-list", getCachedFontFamilyList)
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-	err := http.ListenAndServe(":3333", nil)
+	http.HandleFunc("/api/font-family-list", getCachedFontFamilyList)
+
+	err = http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 	if errors.Is(err, http.ErrServerClosed) {
 		fmt.Printf("server closed\n")
 	} else if err != nil {
