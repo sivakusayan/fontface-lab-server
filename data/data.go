@@ -22,15 +22,21 @@ type FontFamilyList struct {
 	FamilyMetadataList []Font
 }
 
-func GetCachedFontFamilyList() FontFamilyList {
+func GetCachedFontFamilyList() *FontFamilyList {
+	var err error
 	data, found := c.Get("FontFamilyList")
 
 	if !found {
-		data = getFontFamilyList()
+		log.Println("Updating cache for FontFamilyList.")
+		data, err = getFontFamilyList()
+		if err != nil {
+			log.Println("Could not communicate with the Google Font server: ", err)
+			return nil
+		}
 		c.Set("FontFamilyList", data, 24*time.Hour)
 	}
 
-	return data.(FontFamilyList)
+	return data.(*FontFamilyList)
 }
 
 // Implementation of sort.Interface so we can sort by popularity.
@@ -41,14 +47,16 @@ func (a ByPopularity) Len() int           { return len(a) }
 func (a ByPopularity) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByPopularity) Less(i, j int) bool { return a[i].Popularity < a[j].Popularity }
 
-func getFontFamilyList() FontFamilyList {
+func getFontFamilyList() (*FontFamilyList, error) {
 	response, err := http.Get("https://fonts.google.com/metadata/fonts")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
+
+	defer response.Body.Close()
 	byteStream, err := io.ReadAll(response.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	var data FontFamilyList
@@ -67,5 +75,5 @@ func getFontFamilyList() FontFamilyList {
 
 	sort.Sort(ByPopularity(data.FamilyMetadataList))
 
-	return data
+	return &data, err
 }
